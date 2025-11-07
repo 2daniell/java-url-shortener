@@ -2,10 +2,12 @@ package com.daniel.shortener.service;
 
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.daniel.shortener.entity.ShortURL;
+import com.daniel.shortener.entity.ShortUrl;
+import com.daniel.shortener.exception.UrlNotFoundException;
 import com.daniel.shortener.model.Slug;
 import com.daniel.shortener.repository.UrlRepository;
 
@@ -18,26 +20,33 @@ public class UrlService {
         this.repository = repository;
     }
 
-    String temp = "";
-
     @Transactional
     public String create(String destination) {
-
-        Slug slug = Slug.newRandomSlug();
         
-        ShortURL url = new ShortURL(slug, destination);
-        repository.save(url);
+        Slug slug;
 
-        return slug.getSlug();
+        do {
+            slug = Slug.newRandomSlug();
+        } while(findBySlug(slug.getSlug()).isPresent());
+
+        ShortUrl shortUrl = new ShortUrl(slug, destination);
+
+        repository.save(shortUrl);
+
+        return shortUrl.getSlug();
     }
 
     @Transactional
     public void deleteBySlug(String slug) {
-        repository.deleteById(new Slug(slug));
+        Optional<ShortUrl> optional = findBySlug(slug);
+        if (!optional.isPresent()) {
+            throw new UrlNotFoundException(HttpStatus.NOT_FOUND, "Resource not found");
+        }
+        repository.delete(optional.get());
     }
-    
-    public Optional<ShortURL> getDestination(String slug) {
-        return repository.findById(new Slug(slug));
+
+    public Optional<ShortUrl> findBySlug(String slug) {
+        return repository.findBySlug(slug);
     }
     
 }

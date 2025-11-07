@@ -1,14 +1,10 @@
 package com.daniel.shortener.model;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
-import jakarta.persistence.Embeddable;
-
-@Embeddable
-public class Slug implements Serializable {
+public class Slug {
     
     private String slug;
 
@@ -26,7 +22,7 @@ public class Slug implements Serializable {
     }
 
     public static Slug newRandomSlug() {
-        return new Slug(RandomStringUtils.secure().nextAlphanumeric(6));
+        return new Slug(RandomStringUtils.insecure().nextAlphanumeric(6));
     }
 
     @Override
