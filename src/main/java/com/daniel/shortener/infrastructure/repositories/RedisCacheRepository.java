@@ -1,6 +1,5 @@
 package com.daniel.shortener.infrastructure.repositories;
 
-import java.lang.foreign.Linker.Option;
 import java.util.Optional;
 import java.util.function.Function;
 

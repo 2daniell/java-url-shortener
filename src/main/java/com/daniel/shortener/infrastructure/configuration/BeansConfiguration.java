@@ -8,15 +8,18 @@ import com.daniel.shortener.application.usecases.impl.DeleteUrlUseCase;
 import com.daniel.shortener.application.usecases.impl.FindUrlUseCase;
 import com.daniel.shortener.core.entities.ShortUrl;
 import com.daniel.shortener.core.generators.SlugGenerator;
+import com.daniel.shortener.core.repositories.AsyncCacheRepository;
 import com.daniel.shortener.core.repositories.CacheRepository;
 import com.daniel.shortener.core.repositories.Repository;
 import com.daniel.shortener.infrastructure.generators.RandomSlugGenerator;
+import com.daniel.shortener.infrastructure.repositories.AsyncRedisCacheRepository;
 import com.daniel.shortener.infrastructure.repositories.RedisCacheRepository;
 import com.daniel.shortener.infrastructure.repositories.serializer.EntitySerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
 
 @Configuration
@@ -48,6 +51,16 @@ public class BeansConfiguration {
     }
 
     @Bean
+    public RedisAsyncCommands<String, String> redisAsyncCommands(StatefulRedisConnection<String, String> connection) {
+        return connection.async();
+    }
+
+    @Bean
+    public AsyncCacheRepository<ShortUrl, String> asyncCacheRepository(RedisAsyncCommands<String, String> redisCommands, EntitySerializer<ShortUrl> entitySerializer) {
+        return new AsyncRedisCacheRepository(20, 3600, 300, redisCommands, entitySerializer);
+    }
+
+    @Bean
     public CacheRepository<ShortUrl, String> cacheRepository(RedisCommands<String, String> redisCommands, EntitySerializer<ShortUrl> entitySerializer) {
         return new RedisCacheRepository(20, 3600, 300, redisCommands, entitySerializer);
     }
@@ -58,7 +71,7 @@ public class BeansConfiguration {
     }
 
     @Bean
-    public FindUrlUseCase findUrlUseCase(CacheRepository<ShortUrl, String> cacheRepository, Repository<ShortUrl, String> repository) {
+    public FindUrlUseCase findUrlUseCase(AsyncCacheRepository<ShortUrl, String> cacheRepository, Repository<ShortUrl, String> repository) {
         return new FindUrlUseCase(cacheRepository, repository);
     }
 
