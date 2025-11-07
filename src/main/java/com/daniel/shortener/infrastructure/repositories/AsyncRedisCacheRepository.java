@@ -2,6 +2,7 @@ package com.daniel.shortener.infrastructure.repositories;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import com.daniel.shortener.core.entities.ShortUrl;
@@ -19,6 +20,8 @@ public final class AsyncRedisCacheRepository implements AsyncCacheRepository<Sho
     private final RedisAsyncCommands<String, String> redis;
     private final EntitySerializer<ShortUrl> serializer;
 
+    private final ConcurrentHashMap<String, CompletableFuture<Optional<ShortUrl>>> pendingCacheRequest = new ConcurrentHashMap<>();
+
     public AsyncRedisCacheRepository(int frequencyThreshold, int ttlSeconds, int ttlCounterSeconds,
             RedisAsyncCommands<String, String> redis, EntitySerializer<ShortUrl> serializer) {
         this.frequencyThreshold = frequencyThreshold;
@@ -30,8 +33,23 @@ public final class AsyncRedisCacheRepository implements AsyncCacheRepository<Sho
 
     @Override
     public CompletableFuture<Optional<ShortUrl>> get(String key) {
-        String cacheKey = cacheKey(key);
-        return redis.get(cacheKey).thenApply((value) -> value == null ? Optional.<ShortUrl>empty() : Optional.of(serializer.deserialize(value))).toCompletableFuture();
+        CompletableFuture<Optional<ShortUrl>> future = pendingCacheRequest.get(key);
+        if (future != null) {
+            return future;
+        }
+
+        CompletableFuture<Optional<ShortUrl>> newFuture = redis.get(cacheKey(key))
+            .thenApply(value -> value == null ? Optional.<ShortUrl>empty() : Optional.of(serializer.deserialize(value)))
+            .toCompletableFuture();
+        
+        CompletableFuture<Optional<ShortUrl>> existing = pendingCacheRequest.putIfAbsent(key, newFuture);
+        if (existing != null) {
+            return existing;
+        }
+
+        newFuture.whenComplete((res, ex) -> pendingCacheRequest.remove(key));
+
+        return newFuture;
     }
 
     @Override
@@ -45,14 +63,12 @@ public final class AsyncRedisCacheRepository implements AsyncCacheRepository<Sho
                 if (databaseResult.isPresent()) {
 
                     String counterKey = counterKey(key);
-                    return redis.incr(counterKey).thenCompose(count -> {
-                        redis.expire(counterKey, ttlCounterSeconds);
+                    return redis.incr(counterKey).thenCompose(count -> redis.expire(counterKey, ttlCounterSeconds).thenCompose(exp -> {
                         if (count >= frequencyThreshold) {
-                            System.out.println("REGISTRO CACHEADO");
                             return put(key, databaseResult.get()).thenApply(value -> databaseResult);
                         }
                         return CompletableFuture.completedFuture(databaseResult);
-                    });
+                    }));
                 } else {
                     return CompletableFuture.completedFuture(databaseResult);
                 }

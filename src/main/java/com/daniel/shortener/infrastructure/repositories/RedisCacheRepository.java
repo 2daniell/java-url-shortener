@@ -48,7 +48,6 @@ public final class RedisCacheRepository implements CacheRepository<ShortUrl, Str
             redis.expire(counterKey, ttlCounterSeconds);
 
             if (count >= frequencyThreshold) {
-                System.out.println("\n\nREGISTRO CACHEADO\n\n");  
                 put(key, url);
             } 
         });

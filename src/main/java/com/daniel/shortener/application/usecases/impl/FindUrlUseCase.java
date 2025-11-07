@@ -20,8 +20,6 @@ public final class FindUrlUseCase implements UseCase<String, CompletableFuture<S
 
     @Override
     public CompletableFuture<ShortUrl> execute(String slug) {
-        //ShortUrl shortUrl = cacheRepository.getOrElse(slug, repository::find).orElseThrow(() -> new NotFoundException("Resource not found."));
-        //ShortUrl shortUrl = repository.find(slug).orElseThrow(() -> new NotFoundException("Resource not found."));
         CompletableFuture<ShortUrl> future = cacheRepository.getOrElse(slug, s -> CompletableFuture.supplyAsync(() -> repository.find(s)))
             .thenApply(optional -> optional.orElseThrow(() -> new NotFoundException("Resource not found")));
         return future;
