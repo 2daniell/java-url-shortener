@@ -6,6 +6,8 @@ public class ShortUrl {
     private Slug slug;
     private String destination;
 
+    public ShortUrl() {}
+    
     public ShortUrl(Slug slug, String destination) {
         this.slug = slug;
         this.destination = destination;

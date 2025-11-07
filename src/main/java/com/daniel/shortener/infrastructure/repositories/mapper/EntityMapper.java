@@ -1,10 +1,11 @@
-package com.daniel.shortener.infrastructure.persistence.mapper;
+package com.daniel.shortener.infrastructure.repositories.mapper;
 
 import org.springframework.stereotype.Component;
 
 import com.daniel.shortener.core.entities.ShortUrl;
 import com.daniel.shortener.core.entities.Slug;
-import com.daniel.shortener.infrastructure.persistence.model.ShortUrlModel;
+import com.daniel.shortener.infrastructure.repositories.model.ShortUrlModel;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public final class EntityMapper {

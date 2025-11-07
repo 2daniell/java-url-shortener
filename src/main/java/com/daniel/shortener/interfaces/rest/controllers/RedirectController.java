@@ -26,4 +26,11 @@ public class RedirectController {
         String destination = shortUrl.getDestination();
         return ResponseEntity.status(HttpStatus.FOUND).header("Location", destination).build();
     }
+
+    @GetMapping("/test/{slug}")
+    public ResponseEntity<Object> redirectTest(@PathVariable String slug) {
+        ShortUrl shortUrl = findUrlUseCase.execute(slug);
+        String destination = shortUrl.getDestination();
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }

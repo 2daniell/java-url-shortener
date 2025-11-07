@@ -1,12 +1,12 @@
-package com.daniel.shortener.infrastructure.persistence;
+package com.daniel.shortener.infrastructure.repositories;
 
 import java.util.Optional;
 
 import com.daniel.shortener.core.entities.ShortUrl;
 import com.daniel.shortener.core.repositories.Repository;
-import com.daniel.shortener.infrastructure.persistence.jpa.JpaUrlRepository;
-import com.daniel.shortener.infrastructure.persistence.mapper.EntityMapper;
-import com.daniel.shortener.infrastructure.persistence.model.ShortUrlModel;
+import com.daniel.shortener.infrastructure.repositories.jpa.JpaUrlRepository;
+import com.daniel.shortener.infrastructure.repositories.mapper.EntityMapper;
+import com.daniel.shortener.infrastructure.repositories.model.ShortUrlModel;
 
 @org.springframework.stereotype.Repository
 public class UrlRepository implements Repository<ShortUrl, String> {

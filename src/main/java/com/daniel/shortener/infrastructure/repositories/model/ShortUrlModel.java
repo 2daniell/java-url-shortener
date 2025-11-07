@@ -1,4 +1,4 @@
-package com.daniel.shortener.infrastructure.persistence.model;
+package com.daniel.shortener.infrastructure.repositories.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
