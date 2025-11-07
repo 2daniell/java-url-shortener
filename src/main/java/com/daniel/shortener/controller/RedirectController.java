@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daniel.shortener.entity.ShortUrl;
+import com.daniel.shortener.exception.UrlNotFoundException;
 import com.daniel.shortener.service.UrlService;
 
 @RestController
@@ -25,16 +26,9 @@ public class RedirectController {
     @GetMapping("/{slug}")
     public ResponseEntity<Object> redirect(@PathVariable String slug) {
         
-        Optional<ShortUrl> optional = service.findBySlug(slug);
+        ShortUrl shortUrl = service.findBySlug(slug).orElseThrow(() -> new UrlNotFoundException(HttpStatus.NOT_FOUND, "Resource not found"));
+        String destination = shortUrl.getDestination();
 
-        return optional.map((url) -> {
-            
-            String destination = url.getDestination();
-
-            return ResponseEntity.status(HttpStatus.FOUND).header("Location", destination).build();
-
-        }).orElse(
-            ResponseEntity.status(HttpStatus.NOT_FOUND).build()
-        );
+        return ResponseEntity.status(HttpStatus.FOUND).header("Location", destination).build();
     }
 }
