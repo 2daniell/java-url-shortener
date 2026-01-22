@@ -2,24 +2,24 @@ package com.daniel.shortener.core.exceptions;
 
 import java.time.LocalDateTime;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public abstract class BaseException extends RuntimeException {
     
     public record ExceptionResponse(
         int status,
-        String message,
+        String error,
         String path,
         LocalDateTime timestamp
     ) {}
 
+    private final LocalDateTime timestamp = LocalDateTime.now();
+
     private String message;
-    private LocalDateTime timestamp;
+    private int status;
 
-    public BaseException(String message) {
-        this.message = message;
-        this.timestamp = LocalDateTime.now();
-    }
-
-    public ExceptionResponse toResponse(int status, String path) {
+    public ExceptionResponse toResponse(String path) {
         ExceptionResponse response = new ExceptionResponse(status, message, path, timestamp);
         return response;
     }
